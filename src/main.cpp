@@ -1,10 +1,5 @@
 #include <iostream>
-#include <fstream>
-#include <string>
-#include <iomanip>
-#include <vector>
-#include <data.hpp> 
-#include <sstream>
+#include <article.hpp> 
 
 using namespace std;
 
@@ -14,7 +9,7 @@ int readColumn(FILE *stream, char* columnFormat, void* variable, int isEndline) 
         if(!isEndline) 
             read = fscanf(stream, "%[^;];", variable);
         else read = fscanf(stream, "%[^\n]\n", variable);
-        if(!read) {
+        if(read >= 0) {
             if(!isEndline)
                 read = fscanf(stream, ";", variable);
             else read = fscanf(stream, "\n", variable);
@@ -30,8 +25,8 @@ int readColumn(FILE *stream, char* columnFormat, void* variable, int isEndline) 
 int main() {
     FILE *stream = fopen("artigo.csv", "r");
     int id, citations, year;
-    char title[900], authors[4096], snippet[4096], date[40];
-
+    char title[300], authors[1024], snippet[1024], date[20];
+    
     if(stream != NULL) {
         while(true) {
             int read = 0;
@@ -40,7 +35,7 @@ int main() {
                 break;
             }
 
-            if(!readColumn(stream, "\"%[^\"]\";", title, 0)) {
+            if(!readColumn(stream, "\"%[^\";]\";", title, 0)) {
                 title[0] = '\0';
             }
 
@@ -48,7 +43,7 @@ int main() {
                 year = 0;
             }
 
-            if(!readColumn(stream, "\"%[^\"]\";", authors, 0)) {
+            if(!readColumn(stream, "\"%[^\";]\";", authors, 0)) {
                 authors[0] = '\0';
             }
 
@@ -56,7 +51,7 @@ int main() {
                 citations = 0;
             }
 
-            if(!readColumn(stream, "\"%[^\"]\";", date, 0)) {
+            if(!readColumn(stream, "\"%[^\";]\";", date, 0)) {
                 date[0] = '\0';
             }
 
@@ -72,6 +67,14 @@ int main() {
             cout << citations << endl;
             cout << date << endl;
             cout << snippet << endl << endl;
+
+            Article article(id, year, citations, date, title, authors, snippet);
+            char* c =  article.toByteArray();
+            cout << sizeof(c) << "   " << sizeof(article.getData()) << endl;
+            
+            Article article2  = Article(c);
+            cout << article2.getData().m_title << endl;
+            break;
         }
     }
     return 0;
