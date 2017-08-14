@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include <iostream>
-#include <constants.hpp>
 #include <article.hpp>
 #include <vector>
 
@@ -83,7 +82,7 @@ class FileInterface {
     }
 
     public:
-    vector<Article> loadRawArticle() {
+    vector<Article> loadRawArticles() {
         int id_bfr, citations_bfr, year_bfr;
         char title_bfr[TITLE_SIZE * 4], authors_bfr[AUTHORS_SIZE * 4], 
             snippet_bfr[SNIPPET_SIZE * 4], date_bfr[DATE_SIZE * 4];
@@ -115,7 +114,8 @@ class FileInterface {
                 snippet_bfr[0] = '\0';
             }
             
-            articles.push_back(Article(id_bfr, year_bfr, citations_bfr, date_bfr, title_bfr, authors_bfr, snippet_bfr));
+            articles.push_back(Article(id_bfr, year_bfr, citations_bfr, 
+                date_bfr, title_bfr, authors_bfr, snippet_bfr));
         }
 
         return articles;

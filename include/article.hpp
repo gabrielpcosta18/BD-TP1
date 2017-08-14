@@ -1,7 +1,10 @@
 #ifndef _ARTICLE_
 #define _ARTICLE_
 
-#include <constants.hpp>
+#define SNIPPET_SIZE 1024
+#define AUTHORS_SIZE 1024
+#define TITLE_SIZE 300
+#define DATE_SIZE 20
 
 class Article {
     private:
