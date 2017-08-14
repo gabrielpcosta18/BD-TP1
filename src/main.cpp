@@ -2,6 +2,8 @@
 #include <vector>
 
 #include <article.hpp> 
+#include <constants.hpp>
+#include <file_interface.hpp>
 
 using namespace std;
 
@@ -76,49 +78,67 @@ void readColumnByChar(FILE *stream, char* variable) {
 
 int main() {
     ios::sync_with_stdio(false);
-
-    FILE *stream = fopen("artigo.csv", "r");
-    int id, citations, year;
-    char title[900], authors[4096], snippet[4096], date[40];
+    // FILE *stream = fopen("out.csv", "r");
+    // vector<Article> articles;
+    // while(!feof(stream)) {
+    //     char read[4096];
+    //     fread(read, 8, 1, stream);
+    //     articles.push_back(Article(read));
+    //     cout << articles[articles.size() - 1].getData().m_id << endl;
+    // }
     
-    vector<Article> articles; 
-    if(stream != NULL) {
-        while(!feof(stream)) {            
-            if(!readColumn(stream, "\"%d\";", &id, 0)) {
-                cout << "Parser failed: Column title couldn't be parsed" << endl;
-                break;
-            }
-            else cout << id << '\n';
+    // FILE *stream = fopen("test.csv", "r");
+    // int id, citations, year;
+    // char title[TITLE_SIZE * 4], authors[AUTHORS_SIZE * 4], snippet[SNIPPET_SIZE * 4], date[DATE_SIZE * 4];
+    
+    // vector<Article> articles; 
+    // if(stream != NULL) {
+    //     while(!feof(stream)) {            
+    //         if(!readColumn(stream, "\"%d\";", &id, 0)) {
+    //             cout << "Parser failed: Column title couldn't be parsed" << endl;
+    //             break;
+    //         }
 
-            readColumnByChar(stream, title);
+    //         readColumnByChar(stream, title);
 
-            if(!readColumn(stream, "\"%d\";", &year, 0)) {
-                year = 0;
-            }
+    //         if(!readColumn(stream, "\"%d\";", &year, 0)) {
+    //             year = 0;
+    //         }
 
-            readColumnByChar(stream, authors);
+    //         readColumnByChar(stream, authors);
 
-            if(!readColumn(stream, "\"%d\";", &citations, 0)) {
-                citations = 0;
-            }
+    //         if(!readColumn(stream, "\"%d\";", &citations, 0)) {
+    //             citations = 0;
+    //         }
 
-            if(!readColumn(stream, "\"%[^\"]\";", date, 0)) {
-                date[0] = '\0';
-            }
+    //         if(!readColumn(stream, "\"%[^\"]\";", date, 0)) {
+    //             date[0] = '\0';
+    //         }
 
-            if(!readColumn(stream, "%[^\n]\n", snippet, 1)) {
-                snippet[0] = '\0';
-            }
+    //         if(!readColumn(stream, "%[^\n]\n", snippet, 1)) {
+    //             snippet[0] = '\0';
+    //         }
             
-            // cout << title << endl;
-            // cout << year << endl;
-            // cout << authors << endl;
-            // cout << citations << endl;
-            // cout << date << endl;
-            // cout << snippet << endl << endl;
+    //         articles.push_back(Article(id, year, citations, date, title, authors, snippet));
+    //     }
+    // }
 
-            articles.push_back(Article(id, year, citations, date, title, authors, snippet));
-        }
-    }
+    // cout << endl;
+
+    // FILE *out = fopen("out.csv", "wb+");
+    // for(int i = 0; i < articles.size(); ++i) {
+    //     cout << articles[i].toByteArray() << '\n';
+    //     fwrite(articles[i].toByteArray(), sizeof(articles[i].toByteArray()), 1, out);
+    // }
+    // fclose(stream);
+    // // for(int i = 0; i < articles.size(); ++i) {
+    // //     Article a(articles[i].toByteArray());
+    // //     cout << a.getData().m_title << endl;
+    // // }
+    
+    FileInterface  interface("artigo.csv", "r");
+    vector<Article> articles = interface.loadRawArticle();
+    for(int i = 0; i < articles.size(); ++i) 
+        cout << articles[i].getData().m_id << endl;
     return 0;
 }
