@@ -1,8 +1,5 @@
 #include <iostream>
 #include <vector>
-#include <sstream>
-#include <fstream>
-#include <regex>
 
 #include <article.hpp> 
 
@@ -79,28 +76,6 @@ void readColumnByChar(FILE *stream, char* variable) {
 
 int main() {
     ios::sync_with_stdio(false);
-    // ifstream stream("artigo.csv");
-    // stringstream buffer;
-    // buffer << stream.rdbuf();
-    
-    // //regex re("\"(.*)\";\"(.*)\";\"(.*)\";\"(.*)\";\"(.*)\";\"(.*)\";((\".*\")|NULL)");
-    // //regex re("\"(.*)\";(\".*\"|NULL)?;(\".*\"|NULL)?;(\".*\"|NULL)?;(\".*\"|NULL)?;(\".*\"|NULL)?;(\".*\"|NULL)?");
-    // //regex re("\"(.*)\";(?:\"(.*)\"|(NULL));(?:\"(.*)\"|(NULL));(?:\"(.*)\"|(NULL));(?:\"(.*)\"|(NULL));(?:\"(.*)\"|(NULL));(?:\"(.*)\"|(NULL))");
-    // regex re("\"(.*)\";(?:\"((?:.*\\r?\\n?[^\"]*))\"|NULL)?;(?:\"(.*)\"|NULL)?;(?:\"(.*)\"|NULL)?;(?:\"(.*)\"|NULL)?;(?:\"(.*)\"|NULL)?;(?:\"(.*)\"|NULL)?");
-    // string fileContent =  buffer.str();
-    // smatch m;
-    // while (regex_search (fileContent, m, re)) {
-    //     // for(int i = 1; i <= 7; ++i) {
-    //         cout << m[1] << endl;
-    //     // }
-
-    //     // for (auto result:m) { 
-    //     //     cout << result << " ";
-    //     //     cout << endl;
-    //     // }
-        
-    //     fileContent = m.suffix().str();
-    // }
 
     FILE *stream = fopen("artigo.csv", "r");
     int id, citations, year;
@@ -113,7 +88,7 @@ int main() {
                 cout << "Parser failed: Column title couldn't be parsed" << endl;
                 break;
             }
-            else cout << id << endl;
+            else cout << id << '\n';
 
             readColumnByChar(stream, title);
 
