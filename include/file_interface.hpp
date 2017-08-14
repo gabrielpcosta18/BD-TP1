@@ -120,6 +120,26 @@ class FileInterface {
 
         return articles;
     }
+
+    void writeArticle(Article article) {
+        //char* bytes = article.toByteArray();
+        fwrite(&article.getData(), Article::getSizeOfData(), 1, stream);
+    }
+
+    Article readArticle() {
+        //char bytes[Article::getSizeOfData()];
+        Article result;
+        fread(&result, Article::getSizeOfData(), 1, stream);
+        return result;
+    }
+
+    void close() {
+        fclose(stream);
+    }
+
+    bool isOpen() {
+        return stream != NULL;
+    }
     
     FileInterface(string filePath, string mode) {
         stream = fopen(filePath.c_str(), mode.c_str());

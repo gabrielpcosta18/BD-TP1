@@ -5,6 +5,7 @@
 #define AUTHORS_SIZE 1024
 #define TITLE_SIZE 300
 #define DATE_SIZE 20
+#define BYTES_SIZE 2380
 
 class Article {
     private:
@@ -31,6 +32,12 @@ class Article {
     const int getHashCode() {
         return data.m_id;
     }
+
+    static const int getSizeOfData() {
+        return sizeof(Data);
+    }
+
+    Article() {}
 
     Article(char* bytes) {
         data = *(reinterpret_cast<Data*>(bytes));
