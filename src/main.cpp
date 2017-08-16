@@ -3,12 +3,16 @@
 
 #include <file_interface.hpp>
 #include <article.hpp> 
+#include <block_size.hpp>
 
 using namespace std;
+
 
 int main() {
     ios::sync_with_stdio(false);
     
+    cout << FileSystemBlockSize::getBlockSize();
+  
     FileInterface in("out.csv", "r");
     if(in.isOpen()) {
         while(true) {
