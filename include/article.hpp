@@ -8,7 +8,7 @@
 #define BYTES_SIZE 2380
 
 class Article {
-    private:
+    public:
     struct Data {
         int m_id;
         int m_year;
@@ -18,49 +18,16 @@ class Article {
         char m_authors[AUTHORS_SIZE];
         char m_snippet[SNIPPET_SIZE];
     };
+    char* toByteArray();
+    const Data& getData();
+    const int getHashCode();
+    static const int getSizeOfData();
+    Article();
+    Article(char* bytes);
+    Article(int id, int year, int citations, char date[DATE_SIZE], char title[TITLE_SIZE], char authors[AUTHORS_SIZE], char snippet[SNIPPET_SIZE]);
+
+    private:
     Data data;
-
-    public:
-    char* toByteArray() {
-        return reinterpret_cast<char*>(&data);
-    }
-
-    const Data& getData() {
-        return data;
-    }
-
-    const int getHashCode() {
-        return data.m_id;
-    }
-
-    static const int getSizeOfData() {
-        return sizeof(Data);
-    }
-
-    Article() {}
-
-    Article(char* bytes) {
-        data = *(reinterpret_cast<Data*>(bytes));
-    }
-
-    Article(int id, int year, int citations, char date[DATE_SIZE], char title[TITLE_SIZE], char authors[AUTHORS_SIZE], char snippet[SNIPPET_SIZE]) {
-        data.m_id = id;
-        data.m_year = year;
-        data.m_citations = citations;
-        
-        for(int i = 0; i < AUTHORS_SIZE; ++i) {
-            data.m_authors[i] = authors[i];
-            data.m_snippet[i] = snippet[i];
-        }
-
-        for(int i = 0; i < TITLE_SIZE; ++i) {
-            data.m_title[i] = title[i];
-        }
-
-        for(int i = 0; i < DATE_SIZE; ++i) {
-            data.m_date[i] = date[i];
-        }
-    }
 };
 
 #endif

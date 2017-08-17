@@ -13,16 +13,27 @@ SRCEXT := cpp
 SOURCES := $(wildcard $(SRCDIR)/*.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 CFLAGS := -g -std=c++14 -w # -Wall
-#LIB := -pthread -lmongoclient -L lib -lboost_thread-mt -lboost_filesystem-mt -lboost_system-mt
+#LIB := -pthread#-lmongoclient -L lib -lboost_thread-mt -lboost_filesystem-mt -lboost_system-mt
 INC := -I include
+
+ifeq ($(OS),Windows_NT)
+	BUILDCOMMAND := $(setlocal enabledextensions; mkdir $(BUILDDIR); endlocal;)
+else
+	BUILDCOMMAND := $(mkdir -p $(BUILDDIR))
+endif
 
 $(TARGET): $(OBJECTS)
 	@echo " Linking..."
-	@echo " $(CC) $^ -o $(TARGET) $(LIB)"; $(CC) $^ -o $(TARGET) $(LIB)
+	$(BUILDCOMMAND)
+	$(CC) $^ -o $(TARGET) $(LIB)
+	$(CC) $^ -o $(TARGET) $(LIB)
+
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
-	@mkdir -p $(BUILDDIR)
-	@echo " $(CC) $(CFLAGS) $(INC) -c -o $@ $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $<
+	$(BUILDCOMMAND)
+	$(CC) $(CFLAGS) $(INC) -c -o $@ $<
+	$(CC) $(CFLAGS) $(INC) -c -o $@ $<
+
 
 clean:
 	@echo " Cleaning..."; 
