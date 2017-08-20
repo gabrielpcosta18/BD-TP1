@@ -127,6 +127,44 @@ Article FileInterface::readArticle() {
     return result;
 }
 
+Article FileInterface::readRawArticle() {
+    int id_bfr, citations_bfr, year_bfr;
+    char title_bfr[TITLE_SIZE * 4], authors_bfr[AUTHORS_SIZE * 4], 
+        snippet_bfr[SNIPPET_SIZE * 4], date_bfr[DATE_SIZE * 4];
+
+    if(!feof(stream)) {
+        if(!readColumn( "\"%d\";", &id_bfr, 0)) {
+            cout << "Parser failed: Column title couldn't be parsed" << endl;
+            return Article(-1);
+        }
+
+        readColumnByChar( title_bfr);
+
+        if(!readColumn( "\"%d\";", &year_bfr, 0)) {
+            year_bfr = 0;
+        }
+
+        readColumnByChar( authors_bfr);
+
+        if(!readColumn( "\"%d\";", &citations_bfr, 0)) {
+            citations_bfr = 0;
+        }
+
+        if(!readColumn( "\"%[^\"]\";", date_bfr, 0)) {
+            date_bfr[0] = '\0';
+        }
+
+        if(!readColumn( "%[^\n]\n", snippet_bfr, 1)) {
+            snippet_bfr[0] = '\0';
+        }
+        
+        return Article(id_bfr, year_bfr, citations_bfr, 
+            date_bfr, title_bfr, authors_bfr, snippet_bfr);
+    }
+
+    return Article(-1);
+}
+
 void FileInterface::close() {
     fclose(stream);
 }

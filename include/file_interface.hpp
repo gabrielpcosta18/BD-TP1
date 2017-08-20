@@ -13,6 +13,7 @@ class FileInterface {
     vector<Article> loadRawArticles();
     void writeArticle(Article article);
     Article readArticle();
+    Article readRawArticle();
     void close();
     bool isOpen();
     FileInterface();
