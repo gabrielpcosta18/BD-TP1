@@ -24,6 +24,7 @@ class Article {
     static const int getSizeOfData();
     Article();
     Article(char* bytes);
+    Article(int id);
     Article(int id, int year, int citations, char date[DATE_SIZE], char title[TITLE_SIZE], char authors[AUTHORS_SIZE], char snippet[SNIPPET_SIZE]);
 
     private:

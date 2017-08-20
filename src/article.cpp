@@ -18,6 +18,10 @@ const int Article::getSizeOfData() {
 
 Article::Article() {}
 
+Article::Article(int id) {
+    data.m_id = id;
+}
+
 Article::Article(char* bytes) {
     data = *(reinterpret_cast<Article::Data*>(bytes));
 }
