@@ -1,40 +1,30 @@
-#ifndef _BLOCK_SIZE_
-#define _BLOCK_SIZE_
+#ifndef _FILE_SYSTEM_BLOCK
+#define _FILE_SYSTEM_BLOCK
+
+#define BLOCK_SIZE 4096
+#define HEADER_SIZE sizeof(char)
 
 #include <article.hpp>
-
-#ifdef _WIN32 || WIN32 || _WIN64
-#include <windows.h>
-
-typedef BOOL (WINAPI *P_GDFSE)(LPCTSTR, PULARGE_INTEGER, 
-    PULARGE_INTEGER, PULARGE_INTEGER);
-#endif
+#include <string.h>
 
 class FileSystemBlock {
     public:
-        struct BlockInfo {
-            unsigned m_header;
-            char* m_content;
-        };
-
+        bool tryAdd(char*, unsigned);
         char* toByteArray();
+        Article getArticle();
+
         static int getBlockSize();
-        bool tryAdd(Article article);
-        Article getArticles();
 
         FileSystemBlock();
-        FileSystemBlock(const FileSystemBlock& other);
-        FileSystemBlock(char* bytes);
-        ~FileSystemBlock();
+        FileSystemBlock(char*);
 
-        FileSystemBlock& operator= (const FileSystemBlock& other);
-        BlockInfo m_info;
-    
-    private:   
-        unsigned m_occupationMask = 0xFFF;
+    private:
+        char m_content[BLOCK_SIZE];
+        unsigned m_header;
 
-        static int m_blockSize;
-        static int calcBlockSize();
+        unsigned HEADER_MASK = 0xFFF;
+
+        int verifySpaceAvailable(unsigned);
 };
 
 #endif

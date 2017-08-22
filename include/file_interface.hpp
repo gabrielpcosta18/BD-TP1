@@ -10,14 +10,16 @@
 using namespace std;
 
 class FileInterface {
-    public:
-    vector<Article> loadRawArticles();
-    void write(FileSystemBlock& block);
-    FileSystemBlock read();
-    Article readRawArticle();
+    public:        
+    void write(char* bytes, unsigned size);
+    char* read(unsigned size);
+    
     void close();
     bool isOpen();
     bool isEOF();
+    
+    Article readRawArticle();
+    
     FileInterface();
     FileInterface(string filePath, string mode);
 

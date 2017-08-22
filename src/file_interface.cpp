@@ -25,10 +25,6 @@ int FileInterface::readColumn(char* columnFormat, void* variable, int isEndline)
     return read;
 }
 
-bool FileInterface::isEOF() {
-    return feof(stream);
-}
-
 void FileInterface::readColumnByChar(char* variable) {
     int position = 0;
     char c;
@@ -79,56 +75,28 @@ void FileInterface::readColumnByChar(char* variable) {
     }
 }
 
-vector<Article> FileInterface::loadRawArticles() {
-    int id_bfr, citations_bfr, year_bfr;
-    char title_bfr[TITLE_SIZE * 4], authors_bfr[AUTHORS_SIZE * 4], 
-        snippet_bfr[SNIPPET_SIZE * 4], date_bfr[DATE_SIZE * 4];
-
-    vector<Article> articles;
-    while(!feof(stream)) {
-        if(!readColumn( "\"%d\";", &id_bfr, 0)) {
-            cout << "Parser failed: Column title couldn't be parsed" << endl;
-            break;
-        }
-
-        readColumnByChar( title_bfr);
-
-        if(!readColumn( "\"%d\";", &year_bfr, 0)) {
-            year_bfr = 0;
-        }
-
-        readColumnByChar( authors_bfr);
-
-        if(!readColumn( "\"%d\";", &citations_bfr, 0)) {
-            citations_bfr = 0;
-        }
-
-        if(!readColumn( "\"%[^\"]\";", date_bfr, 0)) {
-            date_bfr[0] = '\0';
-        }
-
-        if(!readColumn( "%[^\n]\n", snippet_bfr, 1)) {
-            snippet_bfr[0] = '\0';
-        }
-        
-        articles.push_back(Article(id_bfr, year_bfr, citations_bfr, 
-            date_bfr, title_bfr, authors_bfr, snippet_bfr));
-    }
-
-    return articles;
+bool FileInterface::isEOF() {
+    return feof(stream);
 }
 
-void FileInterface::write(FileSystemBlock& block) {
-    fwrite(block.toByteArray(), FileSystemBlock::getBlockSize(), 1, stream);
+void FileInterface::close() {
+    fclose(stream);
 }
 
-FileSystemBlock FileInterface::read() {
-    char* blockBytes = new char[FileSystemBlock::getBlockSize()];
-    cout <<"Begore " << blockBytes << endl;
-    fread(blockBytes, FileSystemBlock::getBlockSize(), 1, stream);
-    cout << "after " << blockBytes << endl;
-    return FileSystemBlock(blockBytes);
-    // return FileSystemBlock();
+bool FileInterface::isOpen() {
+    return stream != NULL;
+}
+
+void FileInterface::write(char* bytes, unsigned size) {
+    if(isOpen())
+        fwrite(bytes, size, 1, stream);
+}
+
+char* FileInterface::read(unsigned size) {
+    char* blockBytes = new char[size];
+    fread(blockBytes, size, 1, stream);
+    
+    return blockBytes;
 }
 
 Article FileInterface::readRawArticle() {
@@ -167,14 +135,6 @@ Article FileInterface::readRawArticle() {
     }
 
     return Article(-1);
-}
-
-void FileInterface::close() {
-    fclose(stream);
-}
-
-bool FileInterface::isOpen() {
-    return stream != NULL;
 }
 
 FileInterface::FileInterface() {

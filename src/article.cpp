@@ -26,7 +26,7 @@ Article::Article(char* bytes) {
     data = *(reinterpret_cast<Article::Data*>(bytes));
 }
 
-Article::Article(int id, int year, int citations, char date[DATE_SIZE], char title[TITLE_SIZE], char authors[AUTHORS_SIZE], char snippet[SNIPPET_SIZE]) {
+Article::Article(int id, int year, int citations, char date[], char title[], char authors[], char snippet[]) {
     data.m_id = id;
     data.m_year = year;
     data.m_citations = citations;

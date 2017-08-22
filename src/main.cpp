@@ -10,33 +10,33 @@ using namespace std;
 int main() {
     ios::sync_with_stdio(false);
     
-    FileInterface  inter("test.csv", "r");
-    FileInterface out("out.csv", "wb+");
+    // FileInterface  in("test.csv", "r");
+    // FileInterface out("out.csv", "wb+");
 
-    Article article = inter.readRawArticle();
-    article = inter.readRawArticle();
-    while(!inter.isEOF()) {    
-        FileSystemBlock block;
-        if(block.tryAdd(article)) {
-            cout <<  article.getData().m_title << endl;
-            cout << FileSystemBlock(block.toByteArray()).getArticles().getData().m_id << endl;
-            // out.write(*block);
-        }
-        else cout << "wsat";
+    // Article article = in.readRawArticle();
 
-        article = inter.readRawArticle();
+    // while(!in.isEOF()) {    
+    //     FileSystemBlock block;
+    //     if(block.tryAdd(article.toByteArray(), Article::getSizeOfData())) {
+    //         out.write(block.toByteArray(), FileSystemBlock::getBlockSize());
+    //         cout << "Sucesso ";
+    //     }
+    //     else cout << "Fail ";
+
+    //     article = in.readRawArticle();
+    // }
+
+    // in.close();
+    // out.close();
+
+    FileInterface in("out.csv", "rb");
+    
+    while(!in.isEOF()) {
+        FileSystemBlock block(in.read(FileSystemBlock::getBlockSize()));
+        cout << block.getArticle().getData().m_id << endl;
     }
 
-    inter.close();
-    out.close();
-
-    // FileInterface in("out.csv", "rb");
-    
-    // while(!in.isEOF()) {
-    //     in.read();
-    //     // FileSystemBlock* block = new FileSystemBlock(in.read());
-    //     // cout << block->getArticles().getData().m_id << endl;
-    // }
+    in.close();
 
     return 0;
 }

@@ -18,10 +18,12 @@ class Article {
         char m_authors[AUTHORS_SIZE];
         char m_snippet[SNIPPET_SIZE];
     };
+
     char* toByteArray();
     const Data& getData();
     const int getHashCode();
     static const int getSizeOfData();
+    
     Article();
     Article(char* bytes);
     Article(int id);
