@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <article.hpp>
+#include <block.hpp>
 #include <vector>
 
 using namespace std;
@@ -11,11 +12,12 @@ using namespace std;
 class FileInterface {
     public:
     vector<Article> loadRawArticles();
-    void writeArticle(Article article);
-    Article readArticle();
+    void write(FileSystemBlock& block);
+    FileSystemBlock read();
     Article readRawArticle();
     void close();
     bool isOpen();
+    bool isEOF();
     FileInterface();
     FileInterface(string filePath, string mode);
 

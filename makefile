@@ -24,12 +24,14 @@ endif
 
 $(TARGET): $(OBJECTS)
 	@echo " Linking..."
+	@echo "$(BUILDCOMMAND)"
 	$(BUILDCOMMAND)
 	$(CC) $^ -o $(TARGET) $(LIB)
 	$(CC) $^ -o $(TARGET) $(LIB)
 
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
+	@echo "$(BUILDCOMMAND)"
 	$(BUILDCOMMAND)
 	$(CC) $(CFLAGS) $(INC) -c -o $@ $<
 	$(CC) $(CFLAGS) $(INC) -c -o $@ $<

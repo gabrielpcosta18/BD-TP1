@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #include <iostream>
-#include <article.hpp>
 #include <vector>
 
 using namespace std;
@@ -24,6 +23,10 @@ int FileInterface::readColumn(char* columnFormat, void* variable, int isEndline)
     }
 
     return read;
+}
+
+bool FileInterface::isEOF() {
+    return feof(stream);
 }
 
 void FileInterface::readColumnByChar(char* variable) {
@@ -115,16 +118,17 @@ vector<Article> FileInterface::loadRawArticles() {
     return articles;
 }
 
-void FileInterface::writeArticle(Article article) {
-    //char* bytes = article.toByteArray();
-    fwrite(&article.getData(), Article::getSizeOfData(), 1, stream);
+void FileInterface::write(FileSystemBlock& block) {
+    fwrite(block.toByteArray(), FileSystemBlock::getBlockSize(), 1, stream);
 }
 
-Article FileInterface::readArticle() {
-    //char bytes[Article::getSizeOfData()];
-    Article result;
-    fread(&result, Article::getSizeOfData(), 1, stream);
-    return result;
+FileSystemBlock FileInterface::read() {
+    char* blockBytes = new char[FileSystemBlock::getBlockSize()];
+    cout <<"Begore " << blockBytes << endl;
+    fread(blockBytes, FileSystemBlock::getBlockSize(), 1, stream);
+    cout << "after " << blockBytes << endl;
+    return FileSystemBlock(blockBytes);
+    // return FileSystemBlock();
 }
 
 Article FileInterface::readRawArticle() {
@@ -173,7 +177,8 @@ bool FileInterface::isOpen() {
     return stream != NULL;
 }
 
-FileInterface::FileInterface() {}
+FileInterface::FileInterface() {
+}
 
 FileInterface::FileInterface(string filePath, string mode) {
     stream = fopen(filePath.c_str(), mode.c_str());
