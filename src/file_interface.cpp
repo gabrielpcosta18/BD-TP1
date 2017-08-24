@@ -92,8 +92,23 @@ void FileInterface::write(char* bytes, unsigned size) {
         fwrite(bytes, size, 1, stream);
 }
 
+void FileInterface::write(char* bytes, unsigned size, unsigned position) {
+    if(isOpen()) {
+        fseek(stream, position, SEEK_SET);
+        fwrite(bytes, size, 1, stream);
+    }
+}
+
 char* FileInterface::read(unsigned size) {
     char* blockBytes = new char[size];
+    fread(blockBytes, size, 1, stream);
+    
+    return blockBytes;
+}
+
+char* FileInterface::read(unsigned size, unsigned position) {
+    char* blockBytes = new char[size];
+    fseek(stream, position, SEEK_SET);
     fread(blockBytes, size, 1, stream);
     
     return blockBytes;

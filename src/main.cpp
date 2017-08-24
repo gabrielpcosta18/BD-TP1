@@ -11,17 +11,15 @@ int main() {
     ios::sync_with_stdio(false);
     
     // FileInterface  in("test.csv", "r");
-    // FileInterface out("out.csv", "wb+");
+    // FileInterface out("data", "wb+");
 
     // Article article = in.readRawArticle();
 
     // while(!in.isEOF()) {    
     //     FileSystemBlock block;
     //     if(block.tryAdd(article.toByteArray(), Article::getSizeOfData())) {
-    //         out.write(block.toByteArray(), FileSystemBlock::getBlockSize());
-    //         cout << "Sucesso ";
+    //         out.write(block.toByteArray(), FileSystemBlock::getBlockSize(), FileSystemBlock::getBlockSize() * (article.getData().m_id - 1));
     //     }
-    //     else cout << "Fail ";
 
     //     article = in.readRawArticle();
     // }
@@ -29,12 +27,12 @@ int main() {
     // in.close();
     // out.close();
 
-    FileInterface in("out.csv", "rb");
+    FileInterface in("data", "rb");
     
-    while(!in.isEOF()) {
-        FileSystemBlock block(in.read(FileSystemBlock::getBlockSize()));
+    // while(!in.isEOF()) {
+        FileSystemBlock block(in.read(FileSystemBlock::getBlockSize(), 270*FileSystemBlock::getBlockSize()));
         cout << block.getArticle().getData().m_id << endl;
-    }
+    // }
 
     in.close();
 
