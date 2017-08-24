@@ -15,10 +15,12 @@ int main() {
 
     while(!in.isEOF()) {    
         Article article = in.readRawArticle();
+        unsigned long long int blockSize = FileSystemBlock::getBlockSize();
 
         FileSystemBlock block;
         if(block.tryAdd(article.toByteArray(), Article::getSizeOfData())) {
-            out.write(block.toByteArray(), FileSystemBlock::getBlockSize(), (unsigned long long int) FileSystemBlock::getBlockSize()   * (unsigned long long int) (article.getData().m_id - 1));
+            out.write(block.toByteArray(), FileSystemBlock::getBlockSize(), 
+                blockSize * (article.getData().m_id - 1));
         }
     }
 
