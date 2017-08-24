@@ -92,7 +92,7 @@ void FileInterface::write(char* bytes, unsigned size) {
         fwrite(bytes, size, 1, stream);
 }
 
-void FileInterface::write(char* bytes, unsigned size, unsigned position) {
+void FileInterface::write(char* bytes, unsigned size, unsigned long long int position) {
     if(isOpen()) {
         fseek(stream, position, SEEK_SET);
         fwrite(bytes, size, 1, stream);

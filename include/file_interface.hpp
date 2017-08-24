@@ -12,7 +12,7 @@ using namespace std;
 class FileInterface {
     public:        
     void write(char* bytes, unsigned size);
-    void write(char* bytes, unsigned size, unsigned position);
+    void write(char* bytes, unsigned size, unsigned long long int position);
     char* read(unsigned size);
     char* read(unsigned size, unsigned position);
     
