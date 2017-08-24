@@ -26,7 +26,7 @@ int main() {
     out.close();
 
     FileInterface inRead("data", "rb");
-    int i = 0;
+    unsigned long long int i = 0;
     while(!inRead.isEOF()) {
         FileSystemBlock block(inRead.read(FileSystemBlock::getBlockSize(), i*FileSystemBlock::getBlockSize()));
         if(block.getArticle().getData().m_id != 0)

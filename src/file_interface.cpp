@@ -106,7 +106,7 @@ char* FileInterface::read(unsigned size) {
     return blockBytes;
 }
 
-char* FileInterface::read(unsigned size, unsigned position) {
+char* FileInterface::read(unsigned size, unsigned long long int position) {
     char* blockBytes = new char[size];
     fseek(stream, position, SEEK_SET);
     fread(blockBytes, size, 1, stream);
