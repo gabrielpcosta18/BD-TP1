@@ -8,7 +8,7 @@
 
 class Node
 {
-    unsigned int offset = 0;
+    unsigned int offset = -1;
 };
 
 class Page
@@ -17,13 +17,21 @@ class Page
     {
         unsigned short keyNumber = 0;
         Node nodes[MAX_KEY];
-        short pointers[MAX_KEY + 1] = {0};
+        short pointers[MAX_KEY + 1] = {-1};
         char empty[10] = {0};
     };
 
     Data data;
 
-    char* toByteArray();
+    char* toByteArray()
+    {
+         return reinterpret_cast<char*>(&data);
+    }
+
+    Page()
+    {
+    }
+
     Page(char* bytes)
     {
         data = *(reinterpret_cast<Data*>(bytes));
@@ -38,8 +46,8 @@ class Btree
     int root;
     int pointer;  
     
-    int search(int ID);
-    void insert(int ID); /* na Btree ordenada por titulo, vai precisar de um int offset */
+    unsigned long int search(int ID);
+    unsigned long int insert(int ID); /* na Btree ordenada por titulo, vai precisar de um int offset */
     Btree(string fileName);
 };
 
