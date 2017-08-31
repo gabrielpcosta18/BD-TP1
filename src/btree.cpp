@@ -14,17 +14,15 @@ Btree::Btree(string fileName)
     pages = 1;
     root = 0;
     pointer = -BLOCK_SIZE;
-    Page page;
-
     
-    stream.write(page.toByteArray(), BLOCK_SIZE);
+    stream.write(Page().toByteArray(), BLOCK_SIZE);
 }
 
 unsigned long int Btree::splitPage(Page page, int offsetPage, int father)
 {
     Page newPage;
     Page pageFather;
-    int local = 0;
+    unsigned long int local = 0;
     unsigned long int newPageNumber = 0;
     short middle = 0;
     int i = 0;
@@ -33,44 +31,42 @@ unsigned long int Btree::splitPage(Page page, int offsetPage, int father)
         pageFather = Page(stream.read(BLOCK_SIZE, father * BLOCK_SIZE));
     }
 
-    middle = (MAX_KEY-1)/2;
+    middle = (MAX_KEY - 1)/2;
 
-    for(i = middle+1; i < MAX_KEY; i++) {
-
-        newPage.data.nodes[i-(middle+1)] = page.data.nodes[i];
+    for(i = middle + 1; i < MAX_KEY; ++i) {
+        newPage.data.nodes[i -(middle + 1)] = page.data.nodes[i];
         page.data.nodes[i].offset = -1; 
-        newPage.data.pointers[i-middle] = page.data.pointers[i+1];
-        page.data.pointers[i+1] = -1;
+        newPage.data.pointers[i - middle] = page.data.pointers[i + 1];
+        page.data.pointers[i + 1] = -1;
     }
     newPage.data.keyNumber = middle;
     page.data.keyNumber = middle;
 
     /* Move agora o ponteiro final de pag para nova */
-    newPage.data.pointers[0] = page.data.pointers[middle+1];
-    page.data.pointers[middle+1] = -1;
+    newPage.data.pointers[0] = page.data.pointers[middle + 1];
+    page.data.pointers[middle + 1] = -1;
+    
+    // Equivalente ao página_escrever com último parâmetro igual a -1
+    pointer += BLOCK_SIZE;
     stream.write(newPage.toByteArray(), BLOCK_SIZE);
-    // Não tenho certeza se é isso mesmo
     newPageNumber = pointer / BLOCK_SIZE;
 
-    /* InÌcio do "promoting". */
-    /* Agora insere o elemento mediano na p·gina pai. */
+    // Equivalente ao página inserir
     local = page.data.nodes[middle].offset * BLOCK_SIZE;
     stream.write(pageFather.toByteArray(), BLOCK_SIZE, local);
-    //local = pagina_inserir(arv, &pageFather, page.data.nodes[middle]);
-    //page.data.nodes[middle].CEP[0] = '\0';
     page.data.nodes[middle].offset = -1;
 
     /* Coloca os pointers no pai. */
-    pageFather.data.pointers[local] = page.data.keyNumber;
-    pageFather.data.pointers[local+1] = newPage.data.keyNumber;
+    pageFather.data.pointers[local] = offsetPage;
+    pageFather.data.pointers[local+1] = newPageNumber;
     
     /* Atualiza a ·rvore */
     if(father == -1) pages += 2; else pages++;
     // pai = pagina_escrever(arv, &pageFather, pai);
 
     // pagina_escrever(arv, pag, pagina);
-    stream.write(pageFather.toByteArray(), father);
-    stream.write(page.toByteArray(), newPageNumber);
+    stream.write(pageFather.toByteArray(), BLOCK_SIZE, BLOCK_SIZE * father);
+    stream.write(page.toByteArray(), BLOCK_SIZE, BLOCK_SIZE * offsetPage);
 #ifdef DEBUG
     printf("Split: %d para %d e %d\n", pagina, nova, pai);
 #endif
