@@ -27,7 +27,7 @@ short insertPage(Page page, Node node)
 
     page.data.keyNumber++;
 
-    for(i = 0; i < page.data.keyNumber && !finish; i++ ) {
+    for(i = 0; i < page.data.keyNumber && !finish; ++i) {
         if(page.data.nodes[i].offset > node.offset)  {
             bestPosition = i;
             finish = true;
@@ -43,14 +43,14 @@ short insertPage(Page page, Node node)
     while(page.data.nodes[j].offset != -1) j++;
 
     while(bestPosition != j) {
-        page.data.pointers[j+1] = page.data.pointers[j];
+        page.data.pointers[j + 1] = page.data.pointers[j];
         page.data.pointers[j] = -1;
 
         page.data.nodes[j] = page.data.nodes[j-1];
         j--;
     }
 
-    page.data.pointers[bestPosition+1] = page.data.pointers[bestPosition];
+    page.data.pointers[bestPosition + 1] = page.data.pointers[bestPosition];
     page.data.pointers[bestPosition] = -1;
     page.data.nodes[bestPosition] = node;
 
