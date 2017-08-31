@@ -18,69 +18,6 @@ Btree::Btree(string fileName)
     stream.write(Page().toByteArray(), BLOCK_SIZE);
 }
 
-unsigned long int Btree::splitPage(Page page, int offsetPage, int father)
-{
-    Page newPage;
-    Page pageFather;
-    unsigned long int local = 0;
-    unsigned long int newPageNumber = 0;
-    short middle = 0;
-    int i = 0;
-
-    if(father >= 0) {
-        pageFather = Page(stream.read(BLOCK_SIZE, father * BLOCK_SIZE));
-    }
-
-    middle = (MAX_KEY - 1)/2;
-
-    for(i = middle + 1; i < MAX_KEY; ++i) {
-        newPage.data.nodes[i -(middle + 1)] = page.data.nodes[i];
-        page.data.nodes[i].offset = -1; 
-        newPage.data.pointers[i - middle] = page.data.pointers[i + 1];
-        page.data.pointers[i + 1] = -1;
-    }
-    newPage.data.keyNumber = middle;
-    page.data.keyNumber = middle;
-
-    /* Move agora o ponteiro final de pag para nova */
-    newPage.data.pointers[0] = page.data.pointers[middle + 1];
-    page.data.pointers[middle + 1] = -1;
-    
-    // Equivalente ao página_escrever com último parâmetro igual a -1
-    pointer += BLOCK_SIZE;
-    stream.write(newPage.toByteArray(), BLOCK_SIZE);
-    newPageNumber = pointer / BLOCK_SIZE;
-
-    // Equivalente ao página inserir
-    local = page.data.nodes[middle].offset * BLOCK_SIZE;
-    stream.write(pageFather.toByteArray(), BLOCK_SIZE, local);
-    page.data.nodes[middle].offset = -1;
-
-    /* Coloca os pointers no pai. */
-    pageFather.data.pointers[local] = offsetPage;
-    pageFather.data.pointers[local+1] = newPageNumber;
-    
-    /* Atualiza a ·rvore */
-    if(father == -1) pages += 2; else pages++;
-    // pai = pagina_escrever(arv, &pageFather, pai);
-
-    // pagina_escrever(arv, pag, pagina);
-    stream.write(pageFather.toByteArray(), BLOCK_SIZE, BLOCK_SIZE * father);
-    stream.write(page.toByteArray(), BLOCK_SIZE, BLOCK_SIZE * offsetPage);
-#ifdef DEBUG
-    printf("Split: %d para %d e %d\n", pagina, nova, pai);
-#endif
-
-    if(page.data.keyNumber == root) {
-        root = father;
-#ifdef DEBUG
-        printf("Atualizando raiz: %d\n", arv->raiz);
-#endif
-    }
-
-    return father;
-}
-
 short insertPage(Page page, Node node)
 {
     int i = 0;
@@ -118,6 +55,70 @@ short insertPage(Page page, Node node)
     page.data.nodes[bestPosition] = node;
 
     return bestPosition;
+}
+
+
+unsigned long int Btree::splitPage(Page page, int offsetPage, int father)
+{
+    Page newPage;
+    Page pageFather;
+    unsigned long int local = 0;
+    unsigned long int newPageNumber = 0;
+    short middle = 0;
+    int i = 0;
+
+    if(father >= 0) {
+        pageFather = Page(stream.read(BLOCK_SIZE, father * BLOCK_SIZE));
+    }
+
+    middle = (MAX_KEY - 1)/2;
+
+    for(i = middle + 1; i < MAX_KEY; ++i) {
+        newPage.data.nodes[i -(middle + 1)] = page.data.nodes[i];
+        page.data.nodes[i].offset = -1; 
+        newPage.data.pointers[i - middle] = page.data.pointers[i + 1];
+        page.data.pointers[i + 1] = -1;
+    }
+    newPage.data.keyNumber = middle;
+    page.data.keyNumber = middle;
+
+    /* Move agora o ponteiro final de pag para nova */
+    newPage.data.pointers[0] = page.data.pointers[middle + 1];
+    page.data.pointers[middle + 1] = -1;
+    
+    // Equivalente ao página_escrever com último parâmetro igual a -1
+    pointer += BLOCK_SIZE;
+    stream.write(newPage.toByteArray(), BLOCK_SIZE);
+    newPageNumber = pointer / BLOCK_SIZE;
+
+    // Equivalente ao página inserir
+    //local = page.data.nodes[middle].offset * BLOCK_SIZE;
+    local = insertPage(pageFather, page.data.nodes[middle]); // stream.write(pageFather.toByteArray(), BLOCK_SIZE, local);
+    page.data.nodes[middle].offset = -1;
+
+    /* Coloca os pointers no pai. */
+    pageFather.data.pointers[local] = offsetPage;
+    pageFather.data.pointers[local+1] = newPageNumber;
+    
+    /* Atualiza a ·rvore */
+    if(father == -1) pages += 2; else pages++;
+    // pai = pagina_escrever(arv, &pageFather, pai);
+
+    // pagina_escrever(arv, pag, pagina);
+    stream.write(pageFather.toByteArray(), BLOCK_SIZE, BLOCK_SIZE * father);
+    stream.write(page.toByteArray(), BLOCK_SIZE, BLOCK_SIZE * offsetPage);
+#ifdef DEBUG
+    printf("Split: %d para %d e %d\n", pagina, nova, pai);
+#endif
+
+    if(page.data.keyNumber == root) {
+        root = father;
+#ifdef DEBUG
+        printf("Atualizando raiz: %d\n", arv->raiz);
+#endif
+    }
+
+    return father;
 }
 
 unsigned long int Btree::insert(Node node)
