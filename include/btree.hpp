@@ -3,7 +3,7 @@
 
 #include <file_interface.hpp>
 
-#define MAX_KEY 510 /* 2n = 510, n = 255, quantidade maxima/ minima de elementos por pagina */
+#define MAX_KEY 682 /* 2n = 682, n = 341, quantidade maxima/ minima de elementos por pagina */
 #define BLOCK_SIZE 4096
 
 class Node
@@ -20,7 +20,7 @@ class Page
         unsigned short keyNumber = 0;
         Node nodes[MAX_KEY];
         short pointers[MAX_KEY + 1] = {-1};
-        char empty[10] = {0};
+        // char empty[10] = {0};
     };
 
     Data data;
