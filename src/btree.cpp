@@ -126,10 +126,10 @@ unsigned long int Btree::insert(Node node)
     int i = 0;
     int pageFather = -1;
     int currentPage;
-    bool end_page = false;
+    bool endPage = false;
 
     Page page(stream.read(BLOCK_SIZE, root * BLOCK_SIZE));
-    currentPage = page.data.keyNumber;
+    currentPage = root;
 
     if(currentPage == root && page.data.keyNumber == MAX_KEY)
     {
@@ -140,7 +140,7 @@ unsigned long int Btree::insert(Node node)
 
     while(true)
     {
-        for(i = 0; i <= page.data.keyNumber; i++)
+        for(i = 0; i <= page.data.keyNumber && !endPage; i++)
         {
             if(i == page.data.keyNumber || page.data.nodes[i].offset > node.offset)
             {
@@ -156,7 +156,7 @@ unsigned long int Btree::insert(Node node)
                         page = Page(stream.read(BLOCK_SIZE, currentPage * BLOCK_SIZE));
                         pageFather = -1;
                     }
-                    end_page = true;
+                    endPage = true;
                 }
                 else
                 {
@@ -166,7 +166,7 @@ unsigned long int Btree::insert(Node node)
                 }
             }
         }
-        end_page = false;
+        endPage = false;
     }
     return 0;
 }
@@ -174,21 +174,21 @@ unsigned long int Btree::insert(Node node)
 unsigned long int Btree::search(int ID)
 {
     int i = 0;
-    bool end_tree = false;
-    bool end_page = false;
+    bool endTree = false;
+    bool endPage = false;
 
     Page page(stream.read(BLOCK_SIZE, root * BLOCK_SIZE));
 
-    while(!end_tree)
+    while(!endTree)
     {
-        for(i = 0; i < page.data.keyNumber &&  !end_page; i++)
+        for(i = 0; i < page.data.keyNumber &&  !endPage; ++i)
         {
             if(page.data.nodes[i].offset > ID)
             {
                 if(page.data.pointers[i] >= 0)
                 {
                     page = Page(stream.read(BLOCK_SIZE, page.data.pointers[i] * BLOCK_SIZE));
-                    end_page = true;
+                    endPage = true;
                 } else return -1;
             } else
             {
@@ -198,14 +198,14 @@ unsigned long int Btree::search(int ID)
                 }
             }
         }
-        if(end_page) {
-            end_page = false;
+        if(endPage) {
+            endPage = false;
         }
         else {
             if(page.data.pointers[i] >= 0) {
-                end_page = false;
+                endPage = false;
                 page = Page(stream.read(BLOCK_SIZE, page.data.pointers[i] * BLOCK_SIZE));
-            } else end_tree = true;
+            } else endTree = true;
         }
     }
     return -1;
