@@ -8,11 +8,13 @@
 
 class Node
 {
+    public:
     unsigned int offset = -1;
 };
 
 class Page
 {
+    public: 
     struct Data 
     {
         unsigned short keyNumber = 0;
@@ -41,13 +43,15 @@ class Page
 
 class Btree
 {
+    public:
     FileInterface stream;
     short pages;
     int root;
     int pointer;  
     
     unsigned long int search(int ID);
-    unsigned long int insert(int ID); /* na Btree ordenada por titulo, vai precisar de um int offset */
+    unsigned long int insert(Node node); /* na Btree ordenada por titulo, vai precisar de um int offset */
+    unsigned long int splitPage(Page page, int offsetPage, int father);
     Btree(string fileName);
 };
 
