@@ -6,10 +6,14 @@
 #define MAX_KEY 682 /* 2n = 682, n = 341, quantidade maxima/ minima de elementos por pagina */
 #define BLOCK_SIZE 4096
 
-class Node
+struct Node
 {
-    public:
-    unsigned int offset = -1;
+    int offset = -1;
+
+    Node() {}
+    Node(int poffset) {
+        offset = poffset;
+    }
 };
 
 class Page
@@ -19,7 +23,7 @@ class Page
     {
         unsigned short keyNumber = 0;
         Node nodes[MAX_KEY];
-        short pointers[MAX_KEY + 1] = {-1};
+        short pointers[MAX_KEY + 1];
         // char empty[10] = {0};
     };
 
@@ -32,6 +36,8 @@ class Page
 
     Page()
     {
+        memset(data.pointers, -1, sizeof(data.pointers));
+        memset(data.nodes, -1, sizeof(data.nodes));
     }
 
     Page(char* bytes)
@@ -49,9 +55,9 @@ class Btree
     int root;
     int pointer;  
     
-    unsigned long int search(int ID);
+    int search(int ID);
     unsigned long int insert(Node node); /* na Btree ordenada por titulo, vai precisar de um int offset */
-    unsigned long int splitPage(Page page, int offsetPage, int father);
+    unsigned long int splitPage(Page& page, int offsetPage, int father);
     Btree(string fileName);
 };
 

@@ -88,8 +88,10 @@ bool FileInterface::isOpen() {
 }
 
 void FileInterface::write(char* bytes, unsigned size) {
-    if(isOpen())
+    if(isOpen()) {
+        fseek(stream, 0, SEEK_END);
         fwrite(bytes, size, 1, stream);
+    }
 }
 
 void FileInterface::write(char* bytes, unsigned size, unsigned long long int position) {
