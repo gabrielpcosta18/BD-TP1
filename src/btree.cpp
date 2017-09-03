@@ -3,7 +3,7 @@
 
 using namespace std;
 
-#define MAX_KEY 682 /* 2n = 510, n = 255, quantidade maxima/ minima de elementos por pagina */
+#define MAX_KEY 680 /* 2n = 510, n = 255, quantidade maxima/ minima de elementos por pagina */
 #define BLOCK_SIZE 4096
 
 Btree::Btree(string fileName)
@@ -27,7 +27,6 @@ Btree::Btree(string fileName)
 
 short insertPage(Page& page, Node node)
 {
-    // cout << "FUNCTION: insertPage" << endl;
     int i = 0;
     int j = 0;
     bool finish = false;
@@ -41,16 +40,13 @@ short insertPage(Page& page, Node node)
             finish = true;
         }
     }
-    // cout << "BEST POSITION = " << bestPosition << endl;
     if(bestPosition < 0) {
         bestPosition = page.data.keyNumber - 1;
     }
 
     j = bestPosition;
-    // cout << "page.data.nodes[j].offset = " << page.data.nodes[0].offset << endl;  
     while(page.data.nodes[j].offset != -1) j++;
 
-    // cout << "J = " << j << endl;
     while(bestPosition != j) {
         page.data.pointers[j + 1] = page.data.pointers[j];
         page.data.pointers[j] = -1;
@@ -62,9 +58,6 @@ short insertPage(Page& page, Node node)
     page.data.pointers[bestPosition + 1] = page.data.pointers[bestPosition];
     page.data.pointers[bestPosition] = -1;
     page.data.nodes[bestPosition] = node;
-
-    // cout << "bestPosition = " << bestPosition << endl; 
-    // cout << "page.data.nodes[bestPosition].offset = " << page.data.nodes[bestPosition].offset << endl;
 
     return bestPosition;
 }
@@ -87,9 +80,6 @@ long long int Btree::splitPage(Page& page, int offsetPage, int father)
     middle = (MAX_KEY - 1)/2;
 
     for(i = middle + 1; i < MAX_KEY; ++i) {
-        if(i + 2 == MAX_KEY) {
-            int b = 1;
-        }
         newPage.data.nodes[i -(middle + 1)] = page.data.nodes[i];
         page.data.nodes[i].offset = -1; 
         newPage.data.pointers[i - middle] = page.data.pointers[i + 1];
@@ -108,7 +98,6 @@ long long int Btree::splitPage(Page& page, int offsetPage, int father)
     newPageNumber = pointer / BLOCK_SIZE;
 
     // Equivalente ao página inserir
-    //local = page.data.nodes[middle].offset * BLOCK_SIZE;
     local = insertPage(pageFather, page.data.nodes[middle]); // stream.write(pageFather.toByteArray(), BLOCK_SIZE, local);
     page.data.nodes[middle].offset = -1;
 
@@ -139,7 +128,6 @@ long long int Btree::splitPage(Page& page, int offsetPage, int father)
 
 long long int Btree::insert(Node node)
 {
-    // cout << "FUNCTION: insert" << endl;
     int i = 0;
     int pageFather = -1;
     int currentPage;
@@ -149,11 +137,8 @@ long long int Btree::insert(Node node)
     currentPage = root;
 
     if(page.data.pointers[MAX_KEY] == 0) page.data.pointers[MAX_KEY] = -1;
-    // cout << "CURRENT PAGE = ROOT = " << root << endl;
-    // cout << "page.data.keyNumber = " << page.data.keyNumber << endl;
     if(currentPage == root && page.data.keyNumber == MAX_KEY)
     {
-        // cout << "Necessário fazer split: currentPage = " << currentPage << endl;
         currentPage = splitPage(page , currentPage, -1);
         page = Page(stream.read(BLOCK_SIZE, (unsigned long long int) root *  (unsigned long long int) BLOCK_SIZE));
         pageFather = -1;
@@ -166,10 +151,8 @@ long long int Btree::insert(Node node)
         {
             if(i == page.data.keyNumber || page.data.nodes[i].offset > node.offset)
             { 
-                // cout << "page.data.pointers[i] = " << page.data.pointers[i] << endl;
                 if(page.data.pointers[i] != -1) 
                 {
-                    // cout << "Navegar para próxima página: Página = " << page.data.pointers[i] << endl;
                     pageFather = currentPage;
                     currentPage = page.data.pointers[i];
                     page = Page(stream.read(BLOCK_SIZE, (unsigned long long int) currentPage *  (unsigned long long int) BLOCK_SIZE));
@@ -177,7 +160,6 @@ long long int Btree::insert(Node node)
                     if(page.data.pointers[MAX_KEY] == 0) page.data.pointers[MAX_KEY] = -1;
                     if(page.data.keyNumber == MAX_KEY)
                     {
-                        // cout << "Realizar o split da página que acabamos de navegar" << endl;
                         currentPage = splitPage(page ,currentPage, pageFather);
                         page = Page(stream.read(BLOCK_SIZE, (unsigned long long int) currentPage * (unsigned long long int) BLOCK_SIZE));
                         pageFather = -1;
@@ -187,19 +169,15 @@ long long int Btree::insert(Node node)
                 }
                 else
                 {
-                    // cout << "Preparar para inserir página" << endl;
                     insertPage(page, node);
-                    // cout << "page.data.keyNumber = " << page.data.keyNumber << endl;
-                    // cout << "page.data.pointers[i] = " << page.data.pointers[i] << endl;
                     stream.write(page.toByteArray(), BLOCK_SIZE, (unsigned long long int) currentPage * (unsigned long long int) BLOCK_SIZE);
                     return currentPage;
                 }
             }
         }
-        // cout << endl;
+
         endPage = false;
     }
-    // cout << endl;
     return 0;
 }
 
