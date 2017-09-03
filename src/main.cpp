@@ -12,24 +12,28 @@ using namespace std;
 int main() {
     ios::sync_with_stdio(false);
     
-    FileInterface in("test.csv", "r");
-    FileInterface out("data", "wb+");
+    // FileInterface in("artigo.csv", "r");
+    // FileInterface out("data", "wb+");
 
     Btree tree("primaryIndex");
-    while(!in.isEOF()) {    
-        Article article = in.readRawArticle();
-        unsigned long long int blockSize = FileSystemBlock::getBlockSize();
+    // tree.insert(Node(1));
+    cout << tree.search(2623000);
+    // while(!in.isEOF()) {    
+    //     Article article = in.readRawArticle();
+    //     unsigned long long int blockSize = FileSystemBlock::getBlockSize();
 
-        FileSystemBlock block;
-        if(block.tryAdd(article.toByteArray(), Article::getSizeOfData())) {
-            out.write(block.toByteArray(), FileSystemBlock::getBlockSize(), 
-                blockSize * (article.getData().m_id - 1));
-            tree.insert(Node(article.getData().m_id - 1));
-        }
-    }
+    //     FileSystemBlock block;
+    //     if(block.tryAdd(article.toByteArray(), Article::getSizeOfData())) {
+    //         out.write(block.toByteArray(), FileSystemBlock::getBlockSize(), 
+    //             blockSize * (article.getData().m_id - 1));
+    //         // cout << "Inserir nó com id = " << article.getData().m_id - 1 << endl; 
+    //         tree.insert(Node(article.getData().m_id));
+    //     }
+    // }
 
-    in.close();
-    out.close();
+    // in.close();
+    // out.close();
+    
     // int a[2] = {-1};
     // memset(a, -1, sizeof(a));
     // cout << a[1];

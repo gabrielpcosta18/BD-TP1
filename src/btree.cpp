@@ -12,13 +12,17 @@ Btree::Btree(string fileName)
     if(!stream.isOpen())
     {
         stream = FileInterface(fileName, "wb+");
+        root = 1;
+        stream.write(reinterpret_cast<char*>(&root), BLOCK_SIZE);
         Page page = Page();
-        stream.write(page.toByteArray(), BLOCK_SIZE, 0);        
+        stream.write(page.toByteArray(), BLOCK_SIZE, root * BLOCK_SIZE);        
+    }
+    else {
+        root = *(reinterpret_cast<int*>(stream.read(BLOCK_SIZE)));
     }
 
     pages = 1;
-    root = 0;
-    pointer = -BLOCK_SIZE;
+    pointer = 0;
 }
 
 short insertPage(Page& page, Node node)
@@ -66,28 +70,32 @@ short insertPage(Page& page, Node node)
 }
 
 
-unsigned long int Btree::splitPage(Page& page, int offsetPage, int father)
+long long int Btree::splitPage(Page& page, int offsetPage, int father)
 {
     Page newPage;
     Page pageFather;
-    unsigned long int local = 0;
-    unsigned long int newPageNumber =  0;
+    long long int local = 0;
+    long long int newPageNumber =  0;
     short middle = 0;
     int i = 0;
 
-    if(father >= 0) {
-        pageFather = Page(stream.read(BLOCK_SIZE, father * BLOCK_SIZE));
+    if(father >= 1) {
+        pageFather = Page(stream.read(BLOCK_SIZE, (unsigned long long int) father * (unsigned long long int) BLOCK_SIZE));
+        if(pageFather.data.pointers[MAX_KEY] == 0) pageFather.data.pointers[MAX_KEY] = -1;
     }
 
     middle = (MAX_KEY - 1)/2;
 
     for(i = middle + 1; i < MAX_KEY; ++i) {
+        if(i + 2 == MAX_KEY) {
+            int b = 1;
+        }
         newPage.data.nodes[i -(middle + 1)] = page.data.nodes[i];
         page.data.nodes[i].offset = -1; 
         newPage.data.pointers[i - middle] = page.data.pointers[i + 1];
         page.data.pointers[i + 1] = -1;
     }
-    newPage.data.keyNumber = middle;
+    newPage.data.keyNumber = middle + 1;
     page.data.keyNumber = middle;
 
     /* Move agora o ponteiro final de pag para nova */
@@ -106,24 +114,30 @@ unsigned long int Btree::splitPage(Page& page, int offsetPage, int father)
 
     /* Coloca os pointers no pai. */
     pageFather.data.pointers[local] = offsetPage;
-    pageFather.data.pointers[local+1] = newPageNumber;
+    pageFather.data.pointers[local+1] = newPageNumber + 1;
     
     /* Atualiza a ·rvore */
-    if(father == -1) pages += 2; else pages++;
+    if(father == -1) {
+        pages += 2;
+        pointer += BLOCK_SIZE;
+        father = pointer / BLOCK_SIZE + 1;
+    }
+    else pages++;
     // pai = pagina_escrever(arv, &pageFather, pai);
 
     // pagina_escrever(arv, pag, pagina);
-    stream.write(pageFather.toByteArray(), BLOCK_SIZE, BLOCK_SIZE * father);
-    stream.write(page.toByteArray(), BLOCK_SIZE, BLOCK_SIZE * offsetPage);
+    stream.write(pageFather.toByteArray(), BLOCK_SIZE, (unsigned long long int) BLOCK_SIZE * (unsigned long long int) father);
+    stream.write(page.toByteArray(), BLOCK_SIZE, (unsigned long long int) BLOCK_SIZE * (unsigned long long int) offsetPage);
 
-    if(page.data.keyNumber == root) {
+    if(offsetPage == root) {
         root = father;
+        stream.write(reinterpret_cast<char*>(&root), BLOCK_SIZE, 0);
     }
 
     return father;
 }
 
-unsigned long int Btree::insert(Node node)
+long long int Btree::insert(Node node)
 {
     // cout << "FUNCTION: insert" << endl;
     int i = 0;
@@ -133,14 +147,17 @@ unsigned long int Btree::insert(Node node)
 
     Page page(stream.read(BLOCK_SIZE, root * BLOCK_SIZE));
     currentPage = root;
+
+    if(page.data.pointers[MAX_KEY] == 0) page.data.pointers[MAX_KEY] = -1;
     // cout << "CURRENT PAGE = ROOT = " << root << endl;
     // cout << "page.data.keyNumber = " << page.data.keyNumber << endl;
     if(currentPage == root && page.data.keyNumber == MAX_KEY)
     {
-        // cout << "AQUI" << endl;
+        // cout << "Necessário fazer split: currentPage = " << currentPage << endl;
         currentPage = splitPage(page , currentPage, -1);
-        page = Page(stream.read(BLOCK_SIZE, root * BLOCK_SIZE));
+        page = Page(stream.read(BLOCK_SIZE, (unsigned long long int) root *  (unsigned long long int) BLOCK_SIZE));
         pageFather = -1;
+        if(page.data.pointers[MAX_KEY] == 0) page.data.pointers[MAX_KEY] = -1;
     }
 
     while(true)
@@ -152,25 +169,29 @@ unsigned long int Btree::insert(Node node)
                 // cout << "page.data.pointers[i] = " << page.data.pointers[i] << endl;
                 if(page.data.pointers[i] != -1) 
                 {
+                    // cout << "Navegar para próxima página: Página = " << page.data.pointers[i] << endl;
                     pageFather = currentPage;
                     currentPage = page.data.pointers[i];
-                    page = Page(stream.read(BLOCK_SIZE, currentPage * BLOCK_SIZE));
-
+                    page = Page(stream.read(BLOCK_SIZE, (unsigned long long int) currentPage *  (unsigned long long int) BLOCK_SIZE));
+                    
+                    if(page.data.pointers[MAX_KEY] == 0) page.data.pointers[MAX_KEY] = -1;
                     if(page.data.keyNumber == MAX_KEY)
                     {
+                        // cout << "Realizar o split da página que acabamos de navegar" << endl;
                         currentPage = splitPage(page ,currentPage, pageFather);
-                        page = Page(stream.read(BLOCK_SIZE, currentPage * BLOCK_SIZE));
+                        page = Page(stream.read(BLOCK_SIZE, (unsigned long long int) currentPage * (unsigned long long int) BLOCK_SIZE));
                         pageFather = -1;
+                        if(page.data.pointers[MAX_KEY] == 0) page.data.pointers[MAX_KEY] = -1;
                     }
                     endPage = true;
                 }
                 else
                 {
-                    // cout << "INSERT PAGE" << endl;
+                    // cout << "Preparar para inserir página" << endl;
                     insertPage(page, node);
                     // cout << "page.data.keyNumber = " << page.data.keyNumber << endl;
                     // cout << "page.data.pointers[i] = " << page.data.pointers[i] << endl;
-                    stream.write(page.toByteArray(), BLOCK_SIZE, currentPage * BLOCK_SIZE);
+                    stream.write(page.toByteArray(), BLOCK_SIZE, (unsigned long long int) currentPage * (unsigned long long int) BLOCK_SIZE);
                     return currentPage;
                 }
             }
@@ -178,6 +199,7 @@ unsigned long int Btree::insert(Node node)
         // cout << endl;
         endPage = false;
     }
+    // cout << endl;
     return 0;
 }
 
@@ -187,7 +209,7 @@ int Btree::search(int ID)
     bool endTree = false;
     bool endPage = false;
 
-    Page page(stream.read(BLOCK_SIZE, root * BLOCK_SIZE));
+    Page page(stream.read(BLOCK_SIZE, (unsigned long long int) root * (unsigned long long int) BLOCK_SIZE));
     // cout << "CURRENT PAGE = ROOT = " << root << endl;
     // cout << "page.data.keyNumber = " << page.data.keyNumber << endl;
     while(!endTree)
@@ -198,9 +220,9 @@ int Btree::search(int ID)
             if(page.data.nodes[i].offset > ID)
             {
                 // cout << "page.data.pointers[i] = " << page.data.pointers[i] << endl;
-                if(page.data.pointers[i] >= 0)
+                if(page.data.pointers[i] >= 1)
                 {
-                    page = Page(stream.read(BLOCK_SIZE, page.data.pointers[i] * BLOCK_SIZE));
+                    page = Page(stream.read(BLOCK_SIZE, (unsigned long long int) page.data.pointers[i] * (unsigned long long int) BLOCK_SIZE));
                     endPage = true;
                 } else {
                     // cout << "retornar -1 " << endl;
@@ -218,9 +240,9 @@ int Btree::search(int ID)
             endPage = false;
         }
         else {
-            if(page.data.pointers[i] >= 0) {
+            if(page.data.pointers[i] >= 1) {
                 endPage = false;
-                page = Page(stream.read(BLOCK_SIZE, page.data.pointers[i] * BLOCK_SIZE));
+                page = Page(stream.read(BLOCK_SIZE, (unsigned long long int) page.data.pointers[i] * (unsigned long long int) BLOCK_SIZE));
             } else endTree = true;
         }
     }

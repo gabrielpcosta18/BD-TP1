@@ -4,6 +4,7 @@
 #include <file_interface.hpp>
 
 #define MAX_KEY 682 /* 2n = 682, n = 341, quantidade maxima/ minima de elementos por pagina */
+#define MAX_POINTER 683
 #define BLOCK_SIZE 4096
 
 struct Node
@@ -23,8 +24,7 @@ class Page
     {
         unsigned short keyNumber = 0;
         Node nodes[MAX_KEY];
-        short pointers[MAX_KEY + 1];
-        // char empty[10] = {0};
+        short pointers[MAX_POINTER];
     };
 
     Data data;
@@ -56,8 +56,8 @@ class Btree
     int pointer;  
     
     int search(int ID);
-    unsigned long int insert(Node node); /* na Btree ordenada por titulo, vai precisar de um int offset */
-    unsigned long int splitPage(Page& page, int offsetPage, int father);
+    long long int insert(Node node); /* na Btree ordenada por titulo, vai precisar de um int offset */
+    long long int splitPage(Page& page, int offsetPage, int father);
     Btree(string fileName);
 };
 
