@@ -15,6 +15,7 @@ class FileInterface {
     void write(char* bytes, unsigned size, unsigned long long int position);
     char* read(unsigned size);
     char* read(unsigned size, unsigned long long int position);
+    long int getFileSize();
     
     void close();
     bool isOpen();

@@ -18,7 +18,9 @@ Btree::Btree(string fileName)
         stream.write(page.toByteArray(), BLOCK_SIZE, root * BLOCK_SIZE);        
     }
     else {
-        root = *(reinterpret_cast<int*>(stream.read(BLOCK_SIZE)));
+        char *read = stream.read(BLOCK_SIZE);
+        root = *(reinterpret_cast<int*>(read));
+        delete[] read;
     }
 
     pages = 1;

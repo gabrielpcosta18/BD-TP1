@@ -44,6 +44,8 @@ int uploadFile() {
             if(block.tryAdd(article.toByteArray(), Article::getSizeOfData())) {
                 out.write(block.toByteArray(), FileSystemBlock::getBlockSize(), 
                     blockSize * (article.getData().m_id - 1));
+                cout << article.getData().m_id << "\n";
+
                 tree.insert(Node(article.getData().m_id));
                 titleTree.insert(TitleNode((char*)article.getData().m_title, article.getData().m_id));
             }
@@ -77,6 +79,11 @@ int findRec() {
     Article article = block.getArticle(); 
     if(article.getData().m_id > 0) {
         cout << block.getArticle().getData().m_title << endl;
+
+        cout << "Read blocks: " << 1 << endl;
+        cout << "Total blocks: " <<  in.getFileSize()/FileSystemBlock::getBlockSize() << endl; 
+
+        in.close();
         return 0;
     }
     else {
@@ -139,7 +146,7 @@ int main() {
         cout << "Opções: 1 - UploadFile; 2 - FindRec; 3 - SeekID; 4 - SeekTitle; 5 ou outros - Exit" << endl;
         cout << ">> ";
 
-        int option = 4;
+        int option = 1;
         cin >> option;
         
         clearScreen();

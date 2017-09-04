@@ -154,6 +154,11 @@ Article FileInterface::readRawArticle() {
     return Article(-1);
 }
 
+long int FileInterface::getFileSize() {
+    fseek(stream, 0, SEEK_END);
+    return ftell(stream);
+}
+
 FileInterface::FileInterface() {
 }
 

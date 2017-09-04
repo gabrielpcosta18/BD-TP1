@@ -44,6 +44,7 @@ class Page
     Page(char* bytes)
     {
         data = *(reinterpret_cast<Data*>(bytes));
+        delete[] bytes;
     }
 
 };
