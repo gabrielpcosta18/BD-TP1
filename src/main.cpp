@@ -41,6 +41,8 @@ int uploadFile() {
         Btree tree("primaryIndex");
         BtreeTitle titleTree("secondaryIndex");
 
+        cout << "Importando dados. Aguarde" << endl;
+
         while(!in.isEOF()) {    
             Article article = in.readRawArticle();
             unsigned long long int blockSize = FileSystemBlock::getBlockSize();
@@ -49,7 +51,6 @@ int uploadFile() {
             if(block.tryAdd(article.toByteArray(), Article::getSizeOfData())) {
                 out.write(block.toByteArray(), FileSystemBlock::getBlockSize(), 
                     blockSize * (article.getData().m_id - 1));
-                cout << article.getData().m_id << "\n";
 
                 tree.insert(Node(article.getData().m_id));
                 titleTree.insert(TitleNode((char*)article.getData().m_title, article.getData().m_id));
@@ -79,6 +80,11 @@ int findRec() {
     cin >> id;
 
     FileInterface in("data", "rb");
+    if(!in.isOpen()) {
+        cout << "Arquivo de dados não encontrado. Faça o upload" << endl;
+        return 1;
+    }
+
     FileSystemBlock block(in.read(FileSystemBlock::getBlockSize(),
         (id - 1)*FileSystemBlock::getBlockSize()));
 
@@ -113,6 +119,11 @@ int seekID() {
 
     if(offset > 0) {
         FileInterface in("data", "rb");
+        if(!in.isOpen()) {
+            cout << "Arquivo de dados não encontrado. Faça o upload" << endl;
+            return 1;
+        }
+
         FileSystemBlock block(in.read(FileSystemBlock::getBlockSize(),
             (offset - 1)*FileSystemBlock::getBlockSize()));
 
@@ -141,6 +152,11 @@ int seekTitle() {
     if(offset > 0) {
         cout << offset << endl;
         FileInterface in("data", "rb");
+        if(!in.isOpen()) {
+            cout << "Arquivo de dados não encontrado. Faça o upload" << endl;
+            return 1;
+        }
+
         FileSystemBlock block(in.read(FileSystemBlock::getBlockSize(),
             (offset - 1)*FileSystemBlock::getBlockSize()));
         printArticle(block.getArticle());
