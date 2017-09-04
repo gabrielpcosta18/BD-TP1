@@ -6,6 +6,7 @@
 #include <block.hpp>
 #include <stdio.h>
 #include <btree.hpp>
+#include <btree_title.hpp>
 
 using namespace std;
 
@@ -14,7 +15,7 @@ void clearScreen()
     cout << string( 100, '\n' );
 }
 
-void printArticle(Article& article) {
+void printArticle(Article article) {
     cout << article.getData().m_id << endl;
     cout << article.getData().m_title << endl;
 }
@@ -24,7 +25,7 @@ int uploadFile() {
     cout << "Se o arquivo estiver na pasta do projeto, então basta digitar o nome" << endl;
     cout << ">> ";
 
-    string filepath;
+    string filepath = "artigo.csv";
     cin >> filepath;
 
     FileInterface in(filepath, "r");
@@ -33,6 +34,8 @@ int uploadFile() {
         FileInterface out("data", "wb+");
 
         Btree tree("primaryIndex");
+        BtreeTitle titleTree("secondaryIndex");
+
         while(!in.isEOF()) {    
             Article article = in.readRawArticle();
             unsigned long long int blockSize = FileSystemBlock::getBlockSize();
@@ -42,6 +45,7 @@ int uploadFile() {
                 out.write(block.toByteArray(), FileSystemBlock::getBlockSize(), 
                     blockSize * (article.getData().m_id - 1));
                 tree.insert(Node(article.getData().m_id));
+                titleTree.insert(TitleNode((char*)article.getData().m_title, article.getData().m_id));
             }
         }
 
@@ -95,7 +99,7 @@ int seekID() {
         FileInterface in("data", "rb");
         FileSystemBlock block(in.read(FileSystemBlock::getBlockSize(),
             (offset - 1)*FileSystemBlock::getBlockSize()));
-        cout << block.getArticle().getData().m_title << endl;
+        printArticle(block.getArticle());
     }
     else {
         cout << "Não existe artigo com esse código no arquivo de dados" << endl;
@@ -104,7 +108,28 @@ int seekID() {
 }
 
 int seekTitle() {
+    cout << "Digite o Título a ser pesquisado" << endl;
+    cout << ">> ";
 
+    char* title = new char[300];
+    fflush(stdin);
+    cin.ignore();
+    cin.getline(title, 300);
+
+    BtreeTitle tree("secondaryIndex");
+    int offset = tree.search(title);
+ 
+    if(offset > 0) {
+        cout << offset << endl;
+        FileInterface in("data", "rb");
+        FileSystemBlock block(in.read(FileSystemBlock::getBlockSize(),
+            (offset - 1)*FileSystemBlock::getBlockSize()));
+        printArticle(block.getArticle());
+    }
+    else {
+        cout << "Não existe artigo com esse título no arquivo de dados" << endl;
+        return 1;
+    }
 }
 
 int main() {
@@ -114,7 +139,7 @@ int main() {
         cout << "Opções: 1 - UploadFile; 2 - FindRec; 3 - SeekID; 4 - SeekTitle; 5 ou outros - Exit" << endl;
         cout << ">> ";
 
-        int option;
+        int option = 4;
         cin >> option;
         
         clearScreen();
