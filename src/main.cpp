@@ -16,8 +16,8 @@ void clearScreen()
 }
 
 void printArticle(Article article) {
-    cout << article.getData().m_id << endl;
-    cout << article.getData().m_title << endl;
+    cout << "ID: " << article.getData().m_id << endl;
+    cout << "TITLE: " << article.getData().m_title << endl;
 }
 
 int uploadFile() {
@@ -69,7 +69,8 @@ int findRec() {
     cout << "Digite o ID a ser pesquisado" << endl;
     cout << ">> ";
 
-    int id;
+    int id = 1600000;
+    cin.ignore();
     cin >> id;
 
     FileInterface in("data", "rb");
@@ -77,11 +78,14 @@ int findRec() {
         (id - 1)*FileSystemBlock::getBlockSize()));
 
     Article article = block.getArticle(); 
-    if(article.getData().m_id > 0) {
-        cout << block.getArticle().getData().m_title << endl;
-
+    if(article.getData().m_id != 1  || id == 1) {
+        cout << "Statistics" << endl;
         cout << "Read blocks: " << 1 << endl;
-        cout << "Total blocks: " <<  in.getFileSize()/FileSystemBlock::getBlockSize() << endl; 
+        cout << "Total blocks: " <<  in.getFileSize()/FileSystemBlock::getBlockSize() << endl << endl;
+        
+        cout << "Data recovered" << endl;
+        printArticle(block.getArticle());
+        cout << endl;
 
         in.close();
         return 0;
@@ -106,7 +110,10 @@ int seekID() {
         FileInterface in("data", "rb");
         FileSystemBlock block(in.read(FileSystemBlock::getBlockSize(),
             (offset - 1)*FileSystemBlock::getBlockSize()));
+
+        cout << "Data recovered" << endl;
         printArticle(block.getArticle());
+        cout << endl;        
     }
     else {
         cout << "Não existe artigo com esse código no arquivo de dados" << endl;
@@ -140,13 +147,14 @@ int seekTitle() {
 }
 
 int main() {
-    ios::sync_with_stdio(false);
+    ios::sync_with_stdio(true);
     
     while(true) {
         cout << "Opções: 1 - UploadFile; 2 - FindRec; 3 - SeekID; 4 - SeekTitle; 5 ou outros - Exit" << endl;
         cout << ">> ";
 
-        int option = 1;
+        int option = 2;
+        fflush(stdin);
         cin >> option;
         
         clearScreen();
