@@ -1,45 +1,93 @@
-#include <btree.hpp>
+#include <btree_title.hpp>
+#include <iostream>
+#include <string.h>
 
+using namespace std;
 
-#define MAX_KEY 682 /* 2n = 510, n = 255, quantidade maxima/ minima de elementos por pagina */
+#define MAX_KEY 12 /* 2n = 12, n = 6, quantidade maxima/ minima de elementos por pagina */
 #define BLOCK_SIZE 4096
 
-Btree::Btree(string fileName)
+BtreeTitle::BtreeTitle(string fileName)
 {
     stream = FileInterface(fileName, "rb");
     if(!stream.isOpen())
     {
-        stream = FileInterface(fileName, "wb");        
+        stream = FileInterface(fileName, "wb+");
+        root = 1;
+        stream.write(reinterpret_cast<char*>(&root), BLOCK_SIZE);
+        TitlePage page = TitlePage();
+        stream.write(page.toByteArray(), BLOCK_SIZE, root * BLOCK_SIZE);        
     }
+    else {
+        root = *(reinterpret_cast<int*>(stream.read(BLOCK_SIZE)));
+    }
+
     pages = 1;
-    root = 0;
-    pointer = -BLOCK_SIZE;
-    
-    stream.write(Page().toByteArray(), BLOCK_SIZE);
+    pointer = 0;
 }
 
-unsigned long int Btree::splitPage(Page page, int offsetPage, int father)
+short BtreeTitle::insertPage(TitlePage& page, TitleNode node)
 {
-    Page newPage;
-    Page pageFather;
-    unsigned long int local = 0;
-    unsigned long int newPageNumber = 0;
+    int i = 0;
+    int j = 0;
+    bool finish = false;
+    short bestPosition = -1;
+
+    page.data.keyNumber++;
+
+    for(i = 0; i < page.data.keyNumber && !finish; ++i) {
+        if(strcmp(page.data.nodes[i].title, node.title) > 0)  {
+            bestPosition = i;
+            finish = true;
+        }
+    }
+    if(bestPosition < 0) {
+        bestPosition = page.data.keyNumber - 1;
+    }
+
+    j = bestPosition;
+    while(strlen(page.data.nodes[j].title) != 0) j++;
+
+    while(bestPosition != j) {
+        page.data.pointers[j + 1] = page.data.pointers[j];
+        page.data.pointers[j] = -1;
+
+        page.data.nodes[j] = page.data.nodes[j-1];
+        j--;
+    }
+
+    page.data.pointers[bestPosition + 1] = page.data.pointers[bestPosition];
+    page.data.pointers[bestPosition] = -1;
+    page.data.nodes[bestPosition] = node;
+
+    return bestPosition;
+}
+
+
+long long int BtreeTitle::splitPage(TitlePage& page, int offsetPage, int father)
+{
+    TitlePage newPage;
+    TitlePage pageFather;
+    long long int local = 0;
+    long long int newPageNumber =  0;
     short middle = 0;
     int i = 0;
 
-    if(father >= 0) {
-        pageFather = Page(stream.read(BLOCK_SIZE, father * BLOCK_SIZE));
+    if(father >= 1) {
+        pageFather = TitlePage(stream.read(BLOCK_SIZE, (unsigned long long int) father * (unsigned long long int) BLOCK_SIZE));
+        if(pageFather.data.pointers[MAX_KEY] == 0) pageFather.data.pointers[MAX_KEY] = -1;
     }
 
     middle = (MAX_KEY - 1)/2;
 
     for(i = middle + 1; i < MAX_KEY; ++i) {
         newPage.data.nodes[i -(middle + 1)] = page.data.nodes[i];
-        page.data.nodes[i].offset = -1; 
+        page.data.nodes[i].title[0] = '\0';
+
         newPage.data.pointers[i - middle] = page.data.pointers[i + 1];
         page.data.pointers[i + 1] = -1;
     }
-    newPage.data.keyNumber = middle;
+    newPage.data.keyNumber = middle + 1;
     page.data.keyNumber = middle;
 
     /* Move agora o ponteiro final de pag para nova */
@@ -52,161 +100,131 @@ unsigned long int Btree::splitPage(Page page, int offsetPage, int father)
     newPageNumber = pointer / BLOCK_SIZE;
 
     // Equivalente ao página inserir
-    local = page.data.nodes[middle].offset * BLOCK_SIZE;
-    stream.write(pageFather.toByteArray(), BLOCK_SIZE, local);
+    local = insertPage(pageFather, page.data.nodes[middle]); // stream.write(pageFather.toByteArray(), BLOCK_SIZE, local);
     page.data.nodes[middle].title[0] = '\0';
 
     /* Coloca os pointers no pai. */
     pageFather.data.pointers[local] = offsetPage;
-    pageFather.data.pointers[local+1] = newPageNumber;
+    pageFather.data.pointers[local+1] = newPageNumber + 1;
     
     /* Atualiza a ·rvore */
-    if(father == -1) pages += 2; else pages++;
+    if(father == -1) {
+        pages += 2;
+        pointer += BLOCK_SIZE;
+        father = pointer / BLOCK_SIZE + 1;
+    }
+    else pages++;
     // pai = pagina_escrever(arv, &pageFather, pai);
 
     // pagina_escrever(arv, pag, pagina);
-    stream.write(pageFather.toByteArray(), BLOCK_SIZE, BLOCK_SIZE * father);
-    stream.write(page.toByteArray(), BLOCK_SIZE, BLOCK_SIZE * offsetPage);
-#ifdef DEBUG
-    printf("Split: %d para %d e %d\n", pagina, nova, pai);
-#endif
+    stream.write(pageFather.toByteArray(), BLOCK_SIZE, (unsigned long long int) BLOCK_SIZE * (unsigned long long int) father);
+    stream.write(page.toByteArray(), BLOCK_SIZE, (unsigned long long int) BLOCK_SIZE * (unsigned long long int) offsetPage);
 
-    if(page.data.keyNumber == root) {
+    if(offsetPage == root) {
         root = father;
-#ifdef DEBUG
-        printf("Atualizando raiz: %d\n", arv->raiz);
-#endif
+        stream.write(reinterpret_cast<char*>(&root), BLOCK_SIZE, 0);
     }
 
     return father;
 }
 
-short insertPage(Page page, Node node)
-{
-    int i = 0;
-    int j = 0;
-    bool finish = false;
-    short bestPosition = -1;
-
-    page.data.keyNumber++;
-
-    for(i = 0; i < page.data.keyNumber && !finish; i++ ) {
-        if(page.data.nodes[i].title > node.title)  {
-            bestPosition = i;
-            finish = true;
-        }
-    }
-
-    if(bestPosition < 0) {
-        bestPosition = page.data.keyNumber -1;
-    }
-
-    j = bestPosition;
-
-    while(page.data.nodes[j].title[0] != '\0') j++;
-
-    while(bestPosition != j) {
-        page.data.pointers[j+1] = page.data.pointers[j];
-        page.data.pointers[j] = -1;
-
-        page.data.nodes[j] = page.data.nodes[j-1];
-        j--;
-    }
-
-    page.data.pointers[bestPosition+1] = page.data.pointers[bestPosition];
-    page.data.pointers[bestPosition] = -1;
-    page.data.nodes[bestPosition] = node;
-
-    return bestPosition;
-}
-
-unsigned long int Btree::insert(Node node)
+long long int BtreeTitle::insert(TitleNode node)
 {
     int i = 0;
     int pageFather = -1;
     int currentPage;
-    bool end_page = false;
+    bool endPage = false;
 
-    Page page(stream.read(BLOCK_SIZE, root * BLOCK_SIZE));
-    currentPage = page.data.keyNumber;
+    TitlePage page(stream.read(BLOCK_SIZE, root * BLOCK_SIZE));
+    currentPage = root;
 
+    if(page.data.pointers[MAX_KEY] == 0) page.data.pointers[MAX_KEY] = -1;
     if(currentPage == root && page.data.keyNumber == MAX_KEY)
     {
         currentPage = splitPage(page , currentPage, -1);
-        page = Page(stream.read(BLOCK_SIZE, root * BLOCK_SIZE));
+        page = TitlePage(stream.read(BLOCK_SIZE, (unsigned long long int) root *  (unsigned long long int) BLOCK_SIZE));
         pageFather = -1;
+        if(page.data.pointers[MAX_KEY] == 0) page.data.pointers[MAX_KEY] = -1;
     }
 
     while(true)
     {
-        for(i = 0; i <= page.data.keyNumber; i++)
+        for(i = 0; i <= page.data.keyNumber && !endPage; i++)
         {
-            if(i == page.data.keyNumber || page.data.nodes[i].title > node.title)
-            {
+            if(i == page.data.keyNumber || strcmp(page.data.nodes[i].title, node.title) > 0)
+            { 
                 if(page.data.pointers[i] != -1) 
                 {
                     pageFather = currentPage;
                     currentPage = page.data.pointers[i];
-                    page = Page(stream.read(BLOCK_SIZE, currentPage * BLOCK_SIZE));
-
+                    page = TitlePage(stream.read(BLOCK_SIZE, (unsigned long long int) currentPage *  (unsigned long long int) BLOCK_SIZE));
+                    
+                    if(page.data.pointers[MAX_KEY] == 0) page.data.pointers[MAX_KEY] = -1;
                     if(page.data.keyNumber == MAX_KEY)
                     {
                         currentPage = splitPage(page ,currentPage, pageFather);
-                        page = Page(stream.read(BLOCK_SIZE, currentPage * BLOCK_SIZE));
+                        page = TitlePage(stream.read(BLOCK_SIZE, (unsigned long long int) currentPage * (unsigned long long int) BLOCK_SIZE));
                         pageFather = -1;
+                        if(page.data.pointers[MAX_KEY] == 0) page.data.pointers[MAX_KEY] = -1;
                     }
-                    end_page = true;
+                    endPage = true;
                 }
                 else
                 {
                     insertPage(page, node);
-                    stream.write(page.toByteArray(), BLOCK_SIZE, currentPage * BLOCK_SIZE);
+                    stream.write(page.toByteArray(), BLOCK_SIZE, (unsigned long long int) currentPage * (unsigned long long int) BLOCK_SIZE);
                     return currentPage;
                 }
             }
         }
-        end_page = false;
+
+        endPage = false;
     }
     return 0;
 }
 
-unsigned long int Btree::search(char[] title)
+int BtreeTitle::search(char title[300])
 {
     int i = 0;
-    bool end_tree = false;
-    bool end_page = false;
+    bool endTree = false;
+    bool endPage = false;
 
-    Page page(stream.read(BLOCK_SIZE, root * BLOCK_SIZE));
-
-    while(!end_tree)
+    TitlePage page(stream.read(BLOCK_SIZE, (unsigned long long int) root * (unsigned long long int) BLOCK_SIZE));
+    // cout << "CURRENT PAGE = ROOT = " << root << endl;
+    // cout << "page.data.keyNumber = " << page.data.keyNumber << endl;
+    while(!endTree)
     {
-        for(i = 0; i < page.data.keyNumber &&  !end_page; i++)
+        for(i = 0; i < page.data.keyNumber &&  !endPage; ++i)
         {
-            if(page.data.nodes[i].title > title)
+            int comp = strcmp(page.data.nodes[i].title, title);
+            if(comp > 0)
             {
-                if(page.data.pointers[i] >= 0)
+                if(page.data.pointers[i] >= 1)
                 {
-                    page = Page(stream.read(BLOCK_SIZE, page.data.pointers[i] * BLOCK_SIZE));
-                    end_page = true;
-                } else return -1;
+                    page = TitlePage(stream.read(BLOCK_SIZE, (unsigned long long int) page.data.pointers[i] * (unsigned long long int) BLOCK_SIZE));
+                    endPage = true;
+                } else {
+                    return -1;
+                }
             } else
             {
-                if(page.data.nodes[i].offset == 0) 
+                if(comp == 0) 
                 {
-                    return (unsigned long int)page.data.nodes[i].offset;
+                    return (int)page.data.nodes[i].offset;
                 }
             }
         }
-        if(end_page) {
-            end_page = false;
+        if(endPage) {
+            endPage = false;
         }
         else {
-            if(page.data.pointers[i] >= 0) {
-                end_page = false;
-                page = Page(stream.read(BLOCK_SIZE, page.data.pointers[i] * BLOCK_SIZE));
-            } else end_tree = true;
+            if(page.data.pointers[i] >= 1) {
+                endPage = false;
+                page = TitlePage(stream.read(BLOCK_SIZE, (unsigned long long int) page.data.pointers[i] * (unsigned long long int) BLOCK_SIZE));
+            } else endTree = true;
         }
     }
     return -1;
 
 }
+
