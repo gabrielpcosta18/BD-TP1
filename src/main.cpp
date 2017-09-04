@@ -16,8 +16,13 @@ void clearScreen()
 }
 
 void printArticle(Article article) {
-    cout << "ID: " << article.getData().m_id << endl;
-    cout << "TITLE: " << article.getData().m_title << endl;
+    cout << "  - ID: " << article.getData().m_id << endl;
+    cout << "  - TITLE: " << article.getData().m_title << endl;
+    cout << "  - YEAR: " << article.getData().m_year << endl;
+    cout << "  - CITATIONS: " << article.getData().m_citations << endl;
+    cout << "  - DATE: " << article.getData().m_date << endl;
+    cout << "  - AUTHORS: " << article.getData().m_authors << endl;
+    cout << "  - SNIPPET: " << article.getData().m_snippet << endl;
 }
 
 int uploadFile() {
@@ -80,8 +85,8 @@ int findRec() {
     Article article = block.getArticle(); 
     if(article.getData().m_id != 1  || id == 1) {
         cout << "Statistics" << endl;
-        cout << "Read blocks: " << 1 << endl;
-        cout << "Total blocks: " <<  in.getFileSize()/FileSystemBlock::getBlockSize() << endl << endl;
+        cout << "  - Read blocks: " << 1 << endl;
+        cout << "  - Total blocks: " <<  in.getFileSize()/FileSystemBlock::getBlockSize() << endl << endl;
         
         cout << "Data recovered" << endl;
         printArticle(block.getArticle());

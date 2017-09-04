@@ -190,6 +190,7 @@ int BtreeTitle::search(char title[300])
     int i = 0;
     bool endTree = false;
     bool endPage = false;
+    int pagesLoaded = 0;
 
     TitlePage page(stream.read(BLOCK_SIZE, (unsigned long long int) root * (unsigned long long int) BLOCK_SIZE));
     // cout << "CURRENT PAGE = ROOT = " << root << endl;
@@ -205,6 +206,7 @@ int BtreeTitle::search(char title[300])
                 {
                     page = TitlePage(stream.read(BLOCK_SIZE, (unsigned long long int) page.data.pointers[i] * (unsigned long long int) BLOCK_SIZE));
                     endPage = true;
+                    pagesLoaded++;
                 } else {
                     return -1;
                 }
@@ -212,6 +214,9 @@ int BtreeTitle::search(char title[300])
             {
                 if(comp == 0) 
                 {
+                    cout << "Statistics" << endl;
+                    cout << "  - Read Pages " << pagesLoaded << endl;
+                    cout << "  - Total blocks: " <<  stream.getFileSize()/FileSystemBlock::getBlockSize() << endl << endl; 
                     return (int)page.data.nodes[i].offset;
                 }
             }
@@ -222,6 +227,7 @@ int BtreeTitle::search(char title[300])
         else {
             if(page.data.pointers[i] >= 1) {
                 endPage = false;
+                pagesLoaded++;
                 page = TitlePage(stream.read(BLOCK_SIZE, (unsigned long long int) page.data.pointers[i] * (unsigned long long int) BLOCK_SIZE));
             } else endTree = true;
         }

@@ -215,8 +215,8 @@ int Btree::search(int ID)
                 if(page.data.nodes[i].offset == ID) 
                 {
                     cout << "Statistics" << endl;
-                    cout << "Read Pages " << pagesLoaded << endl;
-                    cout << "Total blocks: " <<  stream.getFileSize()/FileSystemBlock::getBlockSize() << endl << endl; 
+                    cout << "  - Read Pages " << pagesLoaded << endl;
+                    cout << "  - Total blocks: " <<  stream.getFileSize()/FileSystemBlock::getBlockSize() << endl << endl; 
                     return (int)page.data.nodes[i].offset;
                 }
             }
